@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: spandana-scanner
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+    envVars:
+      - key: UPSTOX_API_KEY
+        sync: false
+      - key: UPSTOX_API_SECRET
+        sync: false
+      - key: UPSTOX_ACCESS_TOKEN
+        sync: false
+      - key: UPSTOX_REDIRECT_URI
+        sync: false
