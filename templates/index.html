@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPANDANA Strategy Scanner — Live NSE (Upstox)</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#080c12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SPANDANA">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<link rel="icon" href="/static/icons/icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;600&display=swap');
+
+:root {
+  --bg:#080c12; --surface:#0d1420; --card:#111a28; --border:#1e2d42;
+  --accent:#f59e0b; --accent2:#10b981; --accent3:#ef4444; --accent4:#6366f1;
+  --text:#e2e8f0; --muted:#64748b;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; min-height:100vh; }
+.wrap { max-width:1300px; margin:0 auto; padding:0 16px; }
+header { background:linear-gradient(180deg,#0a1220 0%,transparent 100%); border-bottom:1px solid var(--border);
+  padding:16px 0; position:sticky; top:0; z-index:100; backdrop-filter:blur(20px); }
+.header-inner { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--accent),#d97706); border-radius:8px;
+  display:flex; align-items:center; justify-content:center; font-size:18px; }
+.logo h1 { font-size:17px; font-weight:700; letter-spacing:-0.5px; }
+.logo span { font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--accent); display:block; margin-top:-2px; }
+.indices { display:flex; gap:16px; flex-wrap:wrap; font-family:'JetBrains Mono',monospace; font-size:12px; }
+.idx b { display:block; font-size:13px; }
+.idx .chg.up { color:var(--accent2); } .idx .chg.dn { color:var(--accent3); }
+.auth-badge { display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; font-size:11px;
+  font-family:'JetBrains Mono',monospace; text-decoration:none; }
+.auth-badge.ok { background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.3); color:var(--accent2); }
+.auth-badge.bad { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.35); color:var(--accent3); }
+.dot { width:6px; height:6px; border-radius:50%; background:currentColor; display:inline-block; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.search-section { padding:20px 0 6px; }
+.search-box { display:flex; gap:10px; flex-wrap:wrap; }
+.search-input-wrap { flex:1; min-width:220px; position:relative; }
+.search-input-wrap input { width:100%; background:var(--card); border:1px solid var(--border); color:var(--text);
+  padding:12px 16px 12px 40px; border-radius:10px; font-family:'JetBrains Mono',monospace; font-size:14px;
+  font-weight:600; text-transform:uppercase; outline:none; }
+.search-input-wrap input:focus { border-color:var(--accent); }
+.search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); }
+.btn { border:none; padding:12px 22px; border-radius:10px; font-family:'Space Grotesk',sans-serif; font-size:14px;
+  font-weight:700; cursor:pointer; }
+.search-btn { background:linear-gradient(135deg,var(--accent),#d97706); color:#000; }
+.scan-btn { background:linear-gradient(135deg,var(--accent4),#4f46e5); color:#fff; }
+.btn:hover { opacity:.9; }
+.popular-stocks { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+.pop-chip { font-size:11px; font-family:'JetBrains Mono',monospace; font-weight:600; padding:4px 10px;
+  background:var(--card); border:1px solid var(--border); border-radius:6px; color:var(--muted); cursor:pointer; }
+.pop-chip:hover { border-color:var(--accent); color:var(--accent); }
+
+.strategy-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:18px 0; }
+.tab { padding:8px 14px; border-radius:8px; background:var(--card); border:1px solid var(--border); font-size:12px;
+  font-family:'JetBrains Mono',monospace; cursor:pointer; color:var(--muted); }
+.tab.active { border-color:var(--accent); color:var(--accent); background:rgba(245,158,11,.08); }
+
+.status-bar { border-radius:8px; padding:10px 16px; margin:16px 0; font-size:12px;
+  font-family:'JetBrains Mono',monospace; line-height:1.6; }
+.status-bar.live { background:rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.3); color:#10b981; }
+.status-bar.warn { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.3); color:#f59e0b; }
+.status-bar.err { background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.3); color:#ef4444; }
+
+.strategy-header { display:flex; align-items:center; gap:10px; margin:22px 0 12px; flex-wrap:wrap; }
+.strategy-tag { font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px; font-family:'JetBrains Mono',monospace; }
+.strategy-title { font-size:13px; color:var(--muted); }
+.strategy-period { font-size:11px; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-left:auto; }
+.cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+.divider { height:1px; background:var(--border); margin:24px 0; }
+
+.stock-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; }
+.stock-card.swing { border-top:2px solid var(--accent); }
+.stock-card.breakout { border-top:2px solid var(--accent4); }
+.stock-card.momentum { border-top:2px solid #06b6d4; }
+.stock-card.positional { border-top:2px solid var(--accent2); }
+.card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.stock-sym { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px; }
+.stock-name { font-size:11px; color:var(--muted); margin-top:2px; }
+.price-val { font-family:'JetBrains Mono',monospace; font-weight:700; text-align:right; }
+.price-chg { font-size:11px; text-align:right; font-family:'JetBrains Mono',monospace; }
+.price-chg.up { color:var(--accent2); } .price-chg.dn { color:var(--accent3); }
+.trade-params { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+.param-box { background:var(--surface); border-radius:8px; padding:8px; text-align:center; }
+.param-label { font-size:9px; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-bottom:2px; }
+.param-val { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; }
+.param-val.entry { color:var(--accent); } .param-val.sl { color:var(--accent3); } .param-val.tgt { color:var(--accent2); }
+.signal-row { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:12px; }
+.sig-badge { font-size:10px; font-family:'JetBrains Mono',monospace; padding:3px 7px; border-radius:5px; }
+.sig-badge.bull { background:rgba(16,185,129,.12); color:#10b981; }
+.sig-badge.bear { background:rgba(239,68,68,.12); color:#ef4444; }
+.sig-badge.neutral { background:rgba(148,163,184,.12); color:#94a3b8; }
+.rec-box { border-radius:8px; padding:10px; margin-bottom:10px; font-size:12px; line-height:1.4; }
+.rec-box.buy { background:rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.25); }
+.rec-box.watch { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.25); }
+.rec-box.sell { background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.25); }
+.rec-label { font-size:9px; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-bottom:3px; }
+.hold-period { display:flex; justify-content:space-between; font-size:11px; color:var(--muted);
+  font-family:'JetBrains Mono',monospace; margin-bottom:8px; }
+.score-row { display:flex; align-items:center; gap:8px; }
+.score-label { font-size:9px; color:var(--muted); font-family:'JetBrains Mono',monospace; }
+.score-bar { flex:1; height:5px; background:var(--surface); border-radius:3px; overflow:hidden; }
+.score-fill { height:100%; }
+.score-fill.high { background:var(--accent2); } .score-fill.med { background:var(--accent); } .score-fill.low { background:var(--accent3); }
+.score-num { font-size:11px; font-family:'JetBrains Mono',monospace; font-weight:700; }
+
+.loading-wrap { display:flex; flex-direction:column; align-items:center; gap:14px; padding:60px 0; }
+.spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%;
+  animation:spin 0.8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.loading-text { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); }
+.empty { text-align:center; padding:40px 0; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:13px; }
+.error-card { background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.3); border-radius:10px; padding:16px;
+  color:#f87171; font-size:13px; }
+.overall-pill { display:inline-flex; padding:5px 14px; border-radius:20px; font-size:12px; font-weight:700;
+  font-family:'JetBrains Mono',monospace; }
+.overall-pill.bullish { background:rgba(16,185,129,.15); color:var(--accent2); }
+.overall-pill.bearish { background:rgba(239,68,68,.15); color:var(--accent3); }
+.overall-pill.neutral { background:rgba(245,158,11,.1); color:var(--accent); }
+.search-result-banner { display:flex; align-items:center; gap:16px; flex-wrap:wrap; background:var(--card);
+  border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:16px; }
+.srb-sym { font-family:'JetBrains Mono',monospace; font-weight:700; }
+.srb-name { font-size:11px; color:var(--muted); }
+.srb-price { font-family:'JetBrains Mono',monospace; font-weight:700; text-align:right; }
+.srb-chg.up { color:var(--accent2); } .srb-chg.dn { color:var(--accent3); }
+.srb-close { margin-left:auto; background:none; border:1px solid var(--border); color:var(--muted); border-radius:6px;
+  width:26px; height:26px; cursor:pointer; }
+.footer { text-align:center; padding:30px 0 50px; font-size:11px; color:var(--muted); line-height:1.8; }
+
+@media(max-width:600px) { .cards-grid { grid-template-columns:1fr; } .trade-params { grid-template-columns:1fr 1fr 1fr; } }
+
+/* ── Market direction (confluence) panel ─────────────────────────── */
+.section-title { font-size:13px; font-weight:700; letter-spacing:.5px; color:var(--muted); margin:22px 0 10px;
+  text-transform:uppercase; font-family:'JetBrains Mono',monospace; display:flex; align-items:center; gap:8px; }
+.direction-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+.direction-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; }
+.direction-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.direction-name { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; }
+.direction-price { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); }
+.direction-verdict { font-size:11px; font-weight:700; padding:5px 9px; border-radius:6px; margin-bottom:10px; font-family:'JetBrains Mono',monospace; }
+.direction-verdict.buy { background:rgba(16,185,129,.12); color:#10b981; }
+.direction-verdict.sell { background:rgba(239,68,68,.12); color:#ef4444; }
+.direction-verdict.watch { background:rgba(245,158,11,.1); color:#f59e0b; }
+.check-row { display:flex; align-items:center; gap:6px; font-size:11px; padding:3px 0; color:var(--text); }
+.check-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.check-dot.bull { background:#10b981; } .check-dot.bear { background:#ef4444; } .check-dot.neutral { background:#64748b; }
+.confluence-count { font-size:10px; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-top:6px; }
+
+/* ── News panel ───────────────────────────────────────────────────── */
+.news-summary { display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+.news-pill { font-size:11px; font-family:'JetBrains Mono',monospace; padding:4px 10px; border-radius:20px; font-weight:700; }
+.news-pill.bullish { background:rgba(16,185,129,.12); color:#10b981; }
+.news-pill.bearish { background:rgba(239,68,68,.12); color:#ef4444; }
+.news-pill.mixed, .news-pill.neutral { background:rgba(148,163,184,.12); color:#94a3b8; }
+.news-list { display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto; }
+.news-item { display:flex; gap:8px; align-items:flex-start; background:var(--card); border:1px solid var(--border);
+  border-radius:8px; padding:9px 12px; font-size:12px; text-decoration:none; color:var(--text); }
+.news-item:hover { border-color:var(--accent); }
+.news-tag { font-size:9px; padding:2px 6px; border-radius:4px; flex-shrink:0; font-family:'JetBrains Mono',monospace; margin-top:2px; }
+.news-tag.bullish { background:rgba(16,185,129,.15); color:#10b981; }
+.news-tag.bearish { background:rgba(239,68,68,.15); color:#ef4444; }
+.news-tag.neutral { background:rgba(148,163,184,.15); color:#94a3b8; }
+.news-src { font-size:10px; color:var(--muted); margin-top:2px; }
+
+/* ── Backtest widget ─────────────────────────────────────────────── */
+.backtest-toggle { font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--accent4); background:none;
+  border:1px solid var(--border); border-radius:6px; padding:4px 8px; cursor:pointer; margin-top:4px; }
+.backtest-toggle:hover { border-color:var(--accent4); }
+.backtest-box { margin-top:8px; background:var(--surface); border-radius:8px; padding:8px 10px; font-size:11px;
+  font-family:'JetBrains Mono',monospace; line-height:1.7; }
+.backtest-box .bt-win { color:#10b981; } .backtest-box .bt-loss { color:#ef4444; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap header-inner">
+    <div class="logo">
+      <div class="logo-icon">📡</div>
+      <div><h1>SPANDANA<span>Strategy Scanner · Upstox Live</span></h1></div>
+    </div>
+    <div class="indices" id="indices">
+      <div class="idx">NIFTY 50<b id="niftyVal">—</b><span class="chg" id="niftyChg"></span></div>
+      <div class="idx">BANK NIFTY<b id="bnVal">—</b><span class="chg" id="bnChg"></span></div>
+      <div class="idx">SENSEX<b id="sxVal">—</b><span class="chg" id="sxChg"></span></div>
+    </div>
+    {% if authenticated %}
+    <span class="auth-badge ok"><span class="dot"></span> UPSTOX CONNECTED</span>
+    {% else %}
+    <a href="/login" class="auth-badge bad">⚠ CONNECT UPSTOX</a>
+    {% endif %}
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="search-section">
+    <div class="search-box">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="searchInput" placeholder="NSE SYMBOL e.g. RELIANCE, TCS, SBIN" autocomplete="off">
+      </div>
+      <button class="btn search-btn" onclick="searchStock()">ANALYSE</button>
+      <button class="btn scan-btn" onclick="scanAll()">SCAN ALL</button>
+    </div>
+    <div class="popular-stocks">
+      {% for s in ['RELIANCE','TCS','HDFCBANK','INFY','SBIN','LT','BAJFINANCE','SUNPHARMA','TATASTEEL','AXISBANK'] %}
+      <div class="pop-chip" onclick="quickSearch('{{ s }}')">{{ s }}</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="section-title">📍 Market Direction — Nifty / Bank Nifty / Sensex</div>
+  <div id="directionPanel" class="direction-grid">
+    <div class="loading-wrap" style="padding:20px 0;grid-column:1/-1;">
+      <div class="loading-text">Loading confluence signals…</div>
+    </div>
+  </div>
+
+  <div class="strategy-tabs">
+    <div class="tab active" onclick="filterStrategy('all',this)">ALL STRATEGIES</div>
+    <div class="tab" onclick="filterStrategy('swing',this)">⚡ SWING</div>
+    <div class="tab" onclick="filterStrategy('breakout',this)">🚀 BREAKOUT</div>
+    <div class="tab" onclick="filterStrategy('momentum',this)">📈 MOMENTUM</div>
+    <div class="tab" onclick="filterStrategy('positional',this)">🏗️ POSITIONAL</div>
+  </div>
+
+  <div id="searchBanner" style="display:none;margin-top:10px;"></div>
+  <div id="mainContent">
+    <div class="loading-wrap">
+      <div class="loading-text">Click SCAN ALL to load live picks, or search a symbol above.</div>
+    </div>
+  </div>
+
+  <div class="section-title">📰 Market News &amp; Sentiment</div>
+  <div id="newsPanel">
+    <div class="loading-wrap" style="padding:20px 0;">
+      <div class="loading-text">Loading headlines…</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="footer">
+    SPANDANA Strategy Scanner · Live NSE data via Upstox API<br>
+    Not SEBI registered advice. Always apply your own due diligence before trading.<br>
+    Swing · Breakout · Momentum · Positional
+  </div>
+</div>
+
+<script>
+const STRATEGIES = {{ strategies | tojson }};
+let allData = {}, currentFilter = 'all';
+const AUTHENTICATED = {{ 'true' if authenticated else 'false' }};
+
+const fmt = n => (n===null||n===undefined) ? '—' : '₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function needsAuth(container){
+  container.innerHTML = `<div class="error-card">⚠ Not connected to Upstox yet (access token missing/expired).
+    <a href="/login" style="color:#f59e0b;">Click here to log in via Upstox</a> — you'll need to do this once
+    each trading day since Upstox tokens expire daily.</div>`;
+}
+
+function card(d){
+  if(!d) return '';
+  const up = d.pct>=0, sc = d.score>=70?'high':d.score>=45?'med':'low';
+  return `<div class="stock-card ${d.strategy}">
+    <div class="card-top">
+      <div><div class="stock-sym">${d.symbol}</div><div class="stock-name">${d.name}</div></div>
+      <div><div class="price-val">${fmt(d.price)}</div><div class="price-chg ${up?'up':'dn'}">${up?'▲':'▼'} ${Math.abs(d.pct).toFixed(2)}%</div></div>
+    </div>
+    <div class="trade-params">
+      <div class="param-box"><div class="param-label">ENTRY</div><div class="param-val entry">${fmt(d.entry)}</div></div>
+      <div class="param-box"><div class="param-label">STOP LOSS</div><div class="param-val sl">${fmt(d.sl)}</div></div>
+      <div class="param-box"><div class="param-label">TARGET</div><div class="param-val tgt">${fmt(d.target)}</div></div>
+    </div>
+    <div class="signal-row">${d.signals.map(s=>`<span class="sig-badge ${s.c}">${s.t}</span>`).join('')}</div>
+    <div class="rec-box ${d.recType}"><div class="rec-label">RECOMMENDATION</div><div>${d.rec}</div></div>
+    <div class="hold-period"><span>⏱ HOLD: ${d.holdPeriod}</span><span>R:R = 1:${d.rr}</span></div>
+    <div class="score-row"><span class="score-label">SCORE</span><div class="score-bar"><div class="score-fill ${sc}" style="width:${d.score}%"></div></div><span class="score-num">${d.score}/100</span></div>
+    <button class="backtest-toggle" onclick="toggleBacktest(this,'${d.symbol}','${d.strategy}')">📊 View backtest</button>
+    <div class="backtest-box" style="display:none;"></div>
+  </div>`;
+}
+
+function section(strat, cards){
+  const st = STRATEGIES[strat];
+  const valid = (cards||[]).slice().sort((a,b)=>b.score-a.score);
+  if(!valid.length) return '';
+  return `<div class="strategy-header"><span class="strategy-tag" style="background:rgba(245,158,11,.12);color:#f59e0b;">${st.emoji} ${st.label}</span>
+    <span class="strategy-title">Target ${st.target}</span><span class="strategy-period">${st.period}</span></div>
+    <div class="cards-grid">${valid.map(card).join('')}</div><div class="divider"></div>`;
+}
+
+function renderAll(){
+  const order = ['swing','breakout','momentum','positional'];
+  const show = currentFilter==='all' ? order : [currentFilter];
+  const errCount = (allData.errors||[]).length;
+  let bar = `<div class="status-bar live">✅ Live NSE data via Upstox API.${errCount?` (${errCount} symbol(s) skipped: ${allData.errors.join(', ')})`:''}</div>`;
+  let html = bar + show.map(s=>section(s, (allData.data||{})[s])).join('');
+  if(!html.replace(bar,'').trim()) html += `<div class="empty">No setups matched right now. Try SCAN ALL again later or search a symbol.</div>`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+async function scanAll(){
+  const el = document.getElementById('mainContent');
+  document.getElementById('searchBanner').style.display = 'none';
+  el.innerHTML = `<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">Fetching live NSE data from Upstox…</div></div>`;
+  try{
+    const res = await fetch('/api/scan');
+    if(res.status===401){ needsAuth(el); return; }
+    const json = await res.json();
+    allData = json;
+    renderAll();
+  }catch(e){
+    el.innerHTML = `<div class="error-card">Failed to load scan: ${e.message}</div>`;
+  }
+}
+
+async function searchStock(){
+  const sym = document.getElementById('searchInput').value.trim().toUpperCase().replace(/[^A-Z0-9&]/g,'');
+  if(!sym){ alert('Enter an NSE symbol e.g. RELIANCE, TCS, SBIN'); return; }
+  const banner = document.getElementById('searchBanner');
+  banner.style.display = 'block';
+  banner.innerHTML = `<div class="loading-wrap" style="padding:20px 0"><div class="spinner"></div><div class="loading-text">Fetching ${sym}…</div></div>`;
+  banner.scrollIntoView({behavior:'smooth',block:'start'});
+  try{
+    const res = await fetch('/api/stock/'+encodeURIComponent(sym));
+    if(res.status===401){ needsAuth(banner); return; }
+    if(res.status===404){ banner.innerHTML = `<div class="error-card">❌ No data for <b>${sym}</b>. Check the NSE symbol and try again.</div>`; return; }
+    const d = await res.json();
+    const strats = ['swing','breakout','momentum','positional'];
+    const analyses = d.strategies||{};
+    const scores = strats.filter(s=>analyses[s]).map(s=>analyses[s].score);
+    const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+    const oClass = avg>=65?'bullish':avg>=40?'neutral':'bearish';
+    const oText = avg>=65?'BULLISH':avg>=40?'NEUTRAL':'BEARISH';
+    let html = `<div class="search-result-banner">
+      <div><div class="srb-sym">${d.symbol}</div><div class="srb-name">${d.name}</div></div>
+      <div><div class="srb-price">${fmt(d.price)}</div><div class="srb-chg ${d.changePct>=0?'up':'dn'}">${d.changePct>=0?'▲':'▼'} ${Math.abs(d.changePct||0).toFixed(2)}%</div></div>
+      <div class="overall-pill ${oClass}">Overall: ${oText} ${avg}/100</div>
+      <button class="srb-close" onclick="document.getElementById('searchBanner').style.display='none'">✕</button>
+    </div><div class="cards-grid" style="margin-bottom:24px;">`;
+    for(const s of strats) if(analyses[s]) html += card(analyses[s]);
+    html += '</div><div class="divider"></div>';
+    banner.innerHTML = html;
+  }catch(e){
+    banner.innerHTML = `<div class="error-card">Search failed: ${e.message}</div>`;
+  }
+}
+
+async function toggleBacktest(btn, symbol, strategy){
+  const box = btn.nextElementSibling;
+  if(box.style.display==='block'){ box.style.display='none'; return; }
+  box.style.display = 'block';
+  box.textContent = 'Running backtest…';
+  try{
+    const res = await fetch(`/api/backtest/${encodeURIComponent(symbol)}/${encodeURIComponent(strategy)}`);
+    if(res.status===401){ box.innerHTML = 'Connect Upstox first — <a href="/login" style="color:#f59e0b;">/login</a>'; return; }
+    const d = await res.json();
+    if(!d.trades){ box.textContent = 'Not enough history for a backtest yet.'; return; }
+    box.innerHTML = `${d.trades} signals in the lookback window · win rate
+      <span class="${d.winRate>=50?'bt-win':'bt-loss'}">${d.winRate}%</span> ·
+      avg return <span class="${d.avgReturnPct>=0?'bt-win':'bt-loss'}">${d.avgReturnPct}%</span> ·
+      best ${d.bestTradePct}% · worst ${d.worstTradePct}%`;
+  }catch(e){
+    box.textContent = 'Backtest failed: ' + e.message;
+  }
+}
+
+function directionCard(sig){
+  if(!sig) return '';
+  return `<div class="direction-card">
+    <div class="direction-top"><span class="direction-name">${sig.name}</span><span class="direction-price">${fmt(sig.price)}</span></div>
+    <div class="direction-verdict ${sig.verdictType}">${sig.verdict}</div>
+    ${sig.checks.map(c=>`<div class="check-row"><span class="check-dot ${c.dir}"></span>${c.label}</div>`).join('')}
+    <div class="confluence-count">${sig.bullCount}/5 bullish · ${sig.bearCount}/5 bearish (need 4 to call a direction)</div>
+  </div>`;
+}
+
+async function loadDirection(){
+  const el = document.getElementById('directionPanel');
+  try{
+    const res = await fetch('/api/direction');
+    if(res.status===401){ needsAuth(el); return; }
+    const d = await res.json();
+    const html = Object.values(d).map(directionCard).join('');
+    el.innerHTML = html || `<div class="empty" style="grid-column:1/-1;">No direction data available right now.</div>`;
+  }catch(e){
+    el.innerHTML = `<div class="error-card" style="grid-column:1/-1;">Failed to load market direction: ${e.message}</div>`;
+  }
+}
+
+async function loadNews(){
+  const el = document.getElementById('newsPanel');
+  try{
+    const res = await fetch('/api/news');
+    const d = await res.json();
+    const heads = d.headlines || [];
+    if(!heads.length){
+      el.innerHTML = `<div class="empty">No headlines available right now${d.feedErrors&&d.feedErrors.length?' (some feeds unreachable)':''}.</div>`;
+      return;
+    }
+    const summary = `<div class="news-summary">
+      <span class="news-pill ${d.overallSentiment}">Overall: ${d.overallSentiment.toUpperCase()}</span>
+      <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;">
+        ${d.counts.bullish} bullish · ${d.counts.bearish} bearish · ${d.counts.neutral} neutral
+      </span>
+    </div>`;
+    const list = `<div class="news-list">${heads.map(h=>`
+      <a class="news-item" href="${h.link}" target="_blank" rel="noopener">
+        <span class="news-tag ${h.sentiment}">${h.sentiment.slice(0,4).toUpperCase()}</span>
+        <div><div>${h.title}</div><div class="news-src">${h.source}</div></div>
+      </a>`).join('')}</div>`;
+    el.innerHTML = summary + list;
+  }catch(e){
+    el.innerHTML = `<div class="error-card">Failed to load news: ${e.message}</div>`;
+  }
+}
+
+function quickSearch(sym){ document.getElementById('searchInput').value = sym; searchStock(); }
+function filterStrategy(st, el){
+  currentFilter = st;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(allData.data) renderAll();
+}
+document.getElementById('searchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') searchStock(); });
+
+async function loadIndices(){
+  try{
+    const res = await fetch('/api/indices');
+    if(!res.ok) return;
+    const d = await res.json();
+    const map = {NIFTY:['niftyVal','niftyChg'], BANKNIFTY:['bnVal','bnChg'], SENSEX:['sxVal','sxChg']};
+    for(const [k,[vid,cid]] of Object.entries(map)){
+      if(d[k] && d[k].price){
+        const ve=document.getElementById(vid), ce=document.getElementById(cid);
+        ve.textContent = d[k].price.toLocaleString('en-IN',{maximumFractionDigits:0});
+        ce.textContent = (d[k].changePct>=0?'+':'')+d[k].changePct.toFixed(2)+'%';
+        ce.className = 'chg ' + (d[k].changePct>=0?'up':'dn');
+      }
+    }
+  }catch(e){}
+}
+
+if(AUTHENTICATED){ loadIndices(); setTimeout(scanAll, 300); loadDirection(); }
+else {
+  needsAuth(document.getElementById('mainContent'));
+  needsAuth(document.getElementById('directionPanel'));
+}
+loadNews(); // news doesn't need Upstox auth
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
